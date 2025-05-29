@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -12,55 +12,77 @@ import {
 } from 'react-native';
 import { MyHeader } from '../../components';
 import { colors, fonts } from '../../utils';
+import axios from 'axios';
+import { apiURL } from '../../utils/localStorage';
+import { showMessage } from 'react-native-flash-message';
 
 const { width } = Dimensions.get('window');
 
-export default function Penukaran({ navigation }) {
-  const [namaLengkap, setNamaLengkap] = useState('Riri Indriyani');
-//   const [jumlahSampah, setJumlahSampah] = useState('10 Kg');
-  const [jumlahSaldo, setJumlahSaldo] = useState('Rp100.000');
-  const [inputSaldo, setInputSaldo] = useState('');
+export default function Penukaran({ navigation, route }) {
+  const user = route.params.user;
+  const saya = route.params.saya;
 
+  const [tukar, setTukar] = useState(0);
   // Fungsi ubah ke format "Rp10.000"
-  const formatRupiah = (value) => {
-    const numberString = value.replace(/[^,\d]/g, '').toString();
-    const split = numberString.split(',');
-    const sisa = split[0].length % 3;
-    let rupiah = split[0].substr(0, sisa);
-    const ribuan = split[0].substr(sisa).match(/\d{3}/gi);
 
-    if (ribuan) {
-      const separator = sisa ? '.' : '';
-      rupiah += separator + ribuan.join('.');
-    }
 
-    return 'Rp' + rupiah;
-  };
+  const [comp, setComp] = useState({});
+  const __getCompany = () => {
+    axios.post(apiURL + 'company').then(res => {
+      console.log(res.data)
+      setComp(res.data[0]);
+    })
+  }
 
   // Fungsi ambil angka mentah dari input
   const getCleanNumber = (formatted) => {
     return formatted.replace(/[^\d]/g, '');
   };
-const handleSimpan = () => {
-  const cleanJumlahSaldo = getCleanNumber(jumlahSaldo || '0');
-  const cleanInputSaldo = getCleanNumber(inputSaldo || '0');
 
-  if (parseInt(cleanInputSaldo) > parseInt(cleanJumlahSaldo)) {
-    Alert.alert('Gagal', 'Saldo yang ditukar melebihi saldo tersedia.');
-    return;
+  function formatRupiah(value, pakai = true) {
+    const formatted = new Intl.NumberFormat('id-ID', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+    return pakai ? `Rp${formatted}` : formatted;
   }
 
-  const pesan =
-    `Nama Lengkap : *${namaLengkap}*\n` +
-    `Jumlah Saldo : *Rp${parseInt(cleanJumlahSaldo).toLocaleString('id-ID')}*\n` +
-    `Jumlah saldo yg akan ditukar : *Rp${parseInt(cleanInputSaldo).toLocaleString('id-ID')}*`;
+  const handleSimpan = () => {
 
-  const url = `https://wa.me/6285795433065?text=${encodeURIComponent(pesan)}`;
+    if (parseInt(tukar) > parseInt(saya.saldo)) {
+      Alert.alert('Gagal', 'Saldo yang ditukar melebihi saldo tersedia.');
+      return;
+    }
 
-  Linking.openURL(url).catch(() =>
-    Alert.alert('Error', 'Tidak dapat membuka WhatsApp')
-  );
-};
+    const pesan =
+      `Nama Lengkap : *${user.nama_lengkap.trim()}*\n` +
+      `Jumlah Saldo : *${formatRupiah(parseFloat(saya.saldo))}*\n` +
+      `Jumlah saldo yg akan ditukar : *${formatRupiah(parseFloat(tukar))}*`;
+
+    const url = `https://wa.me/${comp.tlp}?text=${encodeURIComponent(pesan)}`;
+
+    axios.post(apiURL + 'insert_tukar', {
+      fid_pengguna: user.id_pengguna,
+      saldo: saya.saldo,
+      tukar: tukar
+    }).then(res => {
+      console.log(res.data)
+      if (res.data.status == 200) {
+        showMessage({
+          type: 'success',
+          message: res.data.message
+        });
+        navigation.goBack();
+        Linking.openURL(url).catch(() =>
+          Alert.alert('Error', 'Tidak dapat membuka WhatsApp')
+        );
+      }
+    })
+  };
+
+  useEffect(() => {
+    __getCompany();
+  }, [])
 
   return (
     <View style={styles.container}>
@@ -72,18 +94,19 @@ const handleSimpan = () => {
           <Text style={styles.label}>Nama Lengkap :</Text>
           <TextInput
             style={styles.input}
-            value={namaLengkap}
+            value={user.nama_lengkap}
             editable={false}
           />
 
-        
+
 
           {/* Jumlah Saldo */}
           <Text style={styles.label}>Jumlah Saldo :</Text>
           <TextInput
             style={styles.input}
-            value={jumlahSaldo}
-            keyboardType="numeric"
+            value={new Intl.NumberFormat().format(saya.saldo)}
+
+            editable={false}
           />
 
           {/* Input Saldo yang Akan Ditukar */}
@@ -93,11 +116,11 @@ const handleSimpan = () => {
             placeholderTextColor="#999"
             style={styles.input}
             keyboardType="numeric"
-            value={inputSaldo}
+            value={tukar}
             onChangeText={(value) => {
-              const clean = value.replace(/[^\d]/g, '');
-              const formatted = formatRupiah(clean);
-              setInputSaldo(formatted);
+              // const clean = value.replace(/[^\d]/g, '');
+              // const formatted = formatRupiah(clean);
+              setTukar(value);
             }}
           />
         </View>

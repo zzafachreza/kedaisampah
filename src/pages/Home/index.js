@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -10,11 +10,45 @@ import {
 } from 'react-native';
 import { Icon } from 'react-native-elements';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { apiURL, getData } from '../../utils/localStorage';
+import { useIsFocused } from '@react-navigation/native';
+import axios from 'axios';
+import { MyCarouser } from '../../components';
 
 
 const { width } = Dimensions.get('window');
 
 export default function Home({ navigation }) {
+
+  const [user, setUser] = useState({});
+  const isFocus = useIsFocused();
+  const [saya, setSaya] = useState({
+    jumlah: 0,
+    saldo: 0
+  })
+
+  useEffect(() => {
+    if (isFocus) {
+      getData('user').then(res => {
+        setUser(res);
+        axios.post(apiURL + 'saldo', {
+          fid_pengguna: res.id_pengguna
+        }).then(res => {
+          console.log(res.data);
+          setSaya(res.data);
+        })
+      })
+    }
+  }, [isFocus]);
+
+  function formatRupiah(value, pakai = true) {
+    const formatted = new Intl.NumberFormat('id-ID', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+    return pakai ? `Rp${formatted}` : formatted;
+  }
+
   return (
     <View style={styles.container}>
       <ScrollView style={{ flex: 1 }}>
@@ -23,7 +57,7 @@ export default function Home({ navigation }) {
         <View style={styles.header}>
           <View>
             <Text style={styles.welcome}>Selamat Datang</Text>
-            <Text style={styles.nama}>Riri Indriyani</Text>
+            <Text style={styles.nama}>{user.nama_lengkap}</Text>
           </View>
           <TouchableOpacity onPress={() => navigation.navigate("JumlahSampah")} style={styles.bookmarkIcon}>
             <Icon type="ionicon" name="reader-outline" size={22} color="#fff" />
@@ -31,25 +65,21 @@ export default function Home({ navigation }) {
         </View>
 
         {/* Gambar Sampah */}
-        <Image
-          source={require('../../assets/sampah_utama.png')}
-          style={styles.gambarSampah}
-          resizeMode="cover"
-        />
+        <MyCarouser />
 
         {/* Card Informasi */}
         <View style={styles.cardRow}>
           <View style={[styles.card, { backgroundColor: '#FAFF89' }]}>
             <Image source={require('../../assets/icon_timbangan.png')} style={styles.cardImage} />
             <View style={styles.cardFooter}>
-              <Text style={styles.cardValue}>67kg</Text>
+              <Text style={styles.cardValue}>{formatRupiah(saya.jumlah, false)} kg</Text>
               <Text style={styles.cardLabel}>Jumlah Sampah</Text>
             </View>
           </View>
           <View style={[styles.card, { backgroundColor: '#87FBB9' }]}>
             <Image source={require('../../assets/icon_uang.png')} style={styles.cardImage} />
             <View style={styles.cardFooter}>
-              <Text style={styles.cardValue}>Rp100.000</Text>
+              <Text style={styles.cardValue}>{formatRupiah(saya.saldo)}</Text>
               <Text style={styles.cardLabel}>Jumlah Saldo</Text>
             </View>
           </View>
@@ -61,13 +91,16 @@ export default function Home({ navigation }) {
         <TouchableOpacity style={styles.navItem}>
           <Image source={require('../../assets/home_icon.png')} style={styles.navIcon} />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate("Penukaran")} style={styles.navItem}>
+        <TouchableOpacity onPress={() => navigation.navigate("Penukaran", {
+          user: user,
+          saya: saya
+        })} style={styles.navItem}>
           <Image source={require('../../assets/transaction_icon.png')} style={styles.navIcon} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate("PemesananSampah")} style={styles.navItem}>
           <Image source={require('../../assets/cart_icon.png')} style={styles.navIcon} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
+        <TouchableOpacity onPress={() => navigation.navigate("Account")} style={styles.navItem}>
           <Image source={require('../../assets/profile_icon.png')} style={styles.navIcon} />
         </TouchableOpacity>
       </View>

@@ -1,7 +1,10 @@
 import { View, Text, ScrollView, StyleSheet, Image, TouchableOpacity, TextInput, Linking, Alert } from 'react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { colors, fonts } from '../../utils';
 import { MyHeader } from '../../components';
+import axios from 'axios';
+import { apiURL, getData, webURL } from '../../utils/localStorage';
+import { showMessage } from 'react-native-flash-message';
 
 const dataSampahAwal = [
   {
@@ -35,44 +38,60 @@ const dataSampahAwal = [
 ];
 
 export default function PemesananSampah({ navigation }) {
-  const [dataSampah, setDataSampah] = useState(dataSampahAwal.map(item => ({ ...item, berat: '', showInput: false })));
+  const [dataSampah, setDataSampah] = useState([]);
 
-const handleInput = (id, value) => {
-  setDataSampah(prev =>
-    prev.map(item => {
-      if (item.id === id) {
-        return {
-          ...item,
-          berat: value,
-        };
-      }
-      return item;
+  const [user, setUser] = useState({})
+  const [comp, setComp] = useState({});
+  const __getCompany = () => {
+    axios.post(apiURL + 'company').then(res => {
+      console.log(res.data)
+      setComp(res.data[0]);
     })
-  );
-};
+  }
 
-const handleInputBlur = (id) => {
-  setDataSampah(prev =>
-    prev.map(item => {
-      if (item.id === id) {
-        // hanya ubah jadi tombol + kalau beratnya kosong
-        if (item.berat.trim() === '') {
+  const _getSampah = () => {
+    axios.post(apiURL + 'sampah').then(res => {
+      console.log(res.data)
+      setDataSampah(res.data);
+    })
+  }
+
+  const handleInput = (id, value) => {
+    setDataSampah(prev =>
+      prev.map(item => {
+        if (item.id_barang === id) {
           return {
             ...item,
-            showInput: false,
-            berat: '',
+            berat: value,
           };
         }
-      }
-      return item;
-    })
-  );
-};
+        return item;
+      })
+    );
+  };
+
+  const handleInputBlur = (id) => {
+    setDataSampah(prev =>
+      prev.map(item => {
+        if (item.id_barang === id) {
+          // hanya ubah jadi tombol + kalau beratnya kosong
+          if (item.berat.trim() === '') {
+            return {
+              ...item,
+              showInput: false,
+              berat: '',
+            };
+          }
+        }
+        return item;
+      })
+    );
+  };
 
 
   const toggleInput = (id) => {
     const updated = dataSampah.map(item => {
-      if (item.id === id) {
+      if (item.id_barang === id) {
         return { ...item, showInput: true };
       }
       return item;
@@ -84,7 +103,7 @@ const handleInputBlur = (id) => {
     const filtered = dataSampah.filter(i => i.berat !== '' && parseFloat(i.berat) > 0);
     const totalJenis = filtered.length;
     const totalKg = filtered.reduce((sum, i) => sum + parseFloat(i.berat), 0);
-    const totalHarga = filtered.reduce((sum, i) => sum + parseFloat(i.berat) * i.hargaPerKg, 0);
+    const totalHarga = filtered.reduce((sum, i) => sum + parseFloat(i.berat) * i.harga, 0);
     return { filtered, totalJenis, totalKg, totalHarga };
   };
 
@@ -92,27 +111,61 @@ const handleInputBlur = (id) => {
 
 
   const handleCheckout = () => {
-  const listSampah = dataSampah.filter(item => item.berat && parseFloat(item.berat) > 0);
+    const listSampah = dataSampah.filter(item => item.berat && parseFloat(item.berat) > 0);
 
-  if (listSampah.length === 0) {
-    Alert.alert('Oops', 'Silakan isi minimal satu jenis sampah');
-    return;
+    if (listSampah.length === 0) {
+      Alert.alert('Oops', 'Silakan isi minimal satu jenis sampah');
+      return;
+    }
+
+    const nomor = comp.tlp; // Nomor WhatsApp tujuan
+    let header = `Nomor Telepon : *${user.telepon}*\n`;
+    header += `Nama Pengguna : *${user.nama_lengkap}*\n\nList Sampah :\n`;
+    const isi = listSampah
+      .map((item, index) => `${index + 1}. *${item.nama}* *${item.berat} kg* = *${formatRupiah(parseFloat(item.berat) * parseFloat(item.harga))}*`)
+      .join('\n');
+
+    const message = header + isi;
+    const url = `https://wa.me/${nomor}?text=${encodeURIComponent(message)}`;
+
+    console.log(listSampah);
+    axios.post(apiURL + 'insert_setor', {
+      user: user,
+      sampah: listSampah
+    }).then(res => {
+      console.log(res.data);
+      navigation.goBack();
+      if (res.data.status == 200) {
+        showMessage({
+          type: 'success',
+          message: res.data.message
+        })
+        Linking.openURL(url).catch(() =>
+          Alert.alert('Error', 'Tidak dapat membuka WhatsApp')
+        );
+      }
+
+    })
+
+  };
+
+
+
+  useEffect(() => {
+    getData('user').then(res => {
+      setUser(res)
+    })
+    __getCompany();
+    _getSampah();
+  }, [])
+
+  function formatRupiah(value, pakai = true) {
+    const formatted = new Intl.NumberFormat('id-ID', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+    return pakai ? `Rp${formatted}` : formatted;
   }
-
-  const nomor = '085795433065'; // Nomor WhatsApp tujuan
-  const header = `Nomor Telepon : *${nomor}*\n\nList Sampah :\n`;
-  const isi = listSampah
-    .map((item, index) => `${index + 1}. *${item.nama}*`)
-    .join('\n');
-
-  const message = header + isi;
-  const url = `https://wa.me/62${nomor.replace(/^0/, '')}?text=${encodeURIComponent(message)}`;
-
-  Linking.openURL(url).catch(() =>
-    Alert.alert('Error', 'Tidak dapat membuka WhatsApp')
-  );
-};
-
 
 
   return (
@@ -122,30 +175,32 @@ const handleInputBlur = (id) => {
         {dataSampah.map((item, index) => (
           <View key={item.id} style={[styles.card, index !== 0 && styles.cardBorder]}>
             <View style={styles.row}>
-              <Image source={item.image} style={styles.image} />
+              <Image source={{
+                uri: webURL + item.foto_barang
+              }} style={styles.image} />
               <View style={styles.textContainer}>
                 <Text style={styles.nama}>{item.nama}</Text>
-                <Text style={styles.deskripsi}>{item.deskripsi}</Text>
+                <Text style={styles.deskripsi}>{item.keterangan}</Text>
                 <View style={styles.hargaRow}>
                   <Image source={require('../../assets/coin.png')} style={styles.coin} />
-                  <Text style={styles.harga}>Rp{item.hargaPerKg.toLocaleString()}/kg</Text>
+                  <Text style={styles.harga}>{formatRupiah(item.harga)}/kg</Text>
                 </View>
               </View>
               {item.showInput ? (
                 <View style={styles.inputWrapper}>
-              <TextInput
-  keyboardType="numeric"
-  value={item.berat}
-  onChangeText={value => handleInput(item.id, value)}
-  onBlur={() => handleInputBlur(item.id)}
-  style={styles.input}
-  placeholder="0"
-/>
+                  <TextInput
+                    keyboardType="numeric"
+                    value={item.berat}
+                    onChangeText={value => handleInput(item.id_barang, value)}
+                    onBlur={() => handleInputBlur(item.id_barang)}
+                    style={styles.input}
+                    placeholder="0"
+                  />
 
                   <Text style={styles.kg}>kg</Text>
                 </View>
               ) : (
-                <TouchableOpacity style={styles.tombol} onPress={() => toggleInput(item.id)}>
+                <TouchableOpacity style={styles.tombol} onPress={() => toggleInput(item.id_barang)}>
                   <Text style={styles.tombolText}>+</Text>
                 </TouchableOpacity>
               )}
@@ -163,14 +218,14 @@ const handleInputBlur = (id) => {
                 <Text style={styles.bullet}>•</Text>
                 <Text style={styles.nama}>{item.nama}</Text>
                 <Text style={styles.kgInfo}>{item.berat} Kg</Text>
-                <Text style={styles.hargaInfo}>Rp{(item.hargaPerKg * parseFloat(item.berat)).toLocaleString()}</Text>
+                <Text style={styles.hargaInfo}>{formatRupiah(item.harga * parseFloat(item.berat))}</Text>
               </View>
             ))}
-            <Text style={styles.totalBiaya}>Total Biaya : Rp{totalHarga.toLocaleString()}</Text>
+            <Text style={styles.totalBiaya}>Total Biaya : Rp{formatRupiah(totalHarga)}</Text>
 
-         <TouchableOpacity style={styles.checkoutButton} onPress={handleCheckout}>
-  <Text style={styles.checkoutText}>Checkout</Text>
-</TouchableOpacity>
+            <TouchableOpacity style={styles.checkoutButton} onPress={handleCheckout}>
+              <Text style={styles.checkoutText}>Checkout</Text>
+            </TouchableOpacity>
 
           </View>
         )}

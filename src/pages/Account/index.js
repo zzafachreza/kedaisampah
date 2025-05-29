@@ -12,51 +12,44 @@ import {
 import { MyHeader } from '../../components';
 import { windowWidth, fonts } from '../../utils/fonts';
 import { colors } from '../../utils/colors';
+import { Alert } from 'react-native';
+import { MYAPP, storeData, webURL } from '../../utils/localStorage';
 // import { getData, storeData, MYAPP } from '../../utils/localStorage'; // ← backend utils
+import { getData } from '../../utils/localStorage';
+import { useIsFocused } from '@react-navigation/native';
+
 
 export default function Profile({ navigation }) {
   // Data dummy sementara
-  const dummyUser = {
-    kode: 'KS001',
-    nama_lengkap: 'Riri Indriyani',
-    username: 'ririndri',
-    telepon: '0897567664675',
-    alamat: 'Jl. Banda No. 30 Kota Bandung',
-    password: '******',
-    foto: require('../../assets/user_dummy.png'),
-  };
 
-  const [user, setUser] = useState(dummyUser);
-  const [loading, setLoading] = useState(false);
 
-  // useEffect(() => {
-  //   setLoading(true);
-  //   getData('user').then(res => {
-  //     setUser(res);
-  //     setLoading(false);
-  //   });
-  // }, []);
+  const [user, setUser] = useState({
+    foto_pengguna: ''
+  });
+  const isFocus = useIsFocused();
+
+  useEffect(() => {
+    if (isFocus) {
+      getData('user').then(res => {
+        setUser(res);
+      })
+    }
+  }, [isFocus])
 
   const handleLogout = () => {
-    // Alert.alert(MYAPP, 'Yakin ingin keluar?', [
-    //   { text: 'Batal', style: 'cancel' },
-    //   {
-    //     text: 'Keluar',
-    //     onPress: () => {
-    //       storeData('user', null);
-    //       navigation.replace('Login');
-    //     },
-    //   },
-    // ]);
+    Alert.alert(MYAPP, 'Yakin ingin keluar?', [
+      { text: 'Batal', style: 'cancel' },
+      {
+        text: 'Keluar',
+        onPress: () => {
+          storeData('user', null);
+          navigation.replace('Splash');
+        },
+      },
+    ]);
   };
 
-  if (loading) {
-    return (
-      <View style={styles.loading}>
-        <ActivityIndicator color={colors.primary} size="large" />
-      </View>
-    );
-  }
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -64,7 +57,9 @@ export default function Profile({ navigation }) {
 
       <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
         <View style={styles.content}>
-          <Image source={user.foto} style={styles.avatar} />
+          <Image source={{
+            uri: user.foto_pengguna.length > 0 ? webURL + user.foto_pengguna : 'https://zavalabs.com/noimage.png'
+          }} style={styles.avatar} />
           <Text style={styles.kode}>{user.kode}</Text>
 
           <View style={styles.box}>
@@ -88,12 +83,9 @@ export default function Profile({ navigation }) {
               <Text style={styles.inputText}>{user.alamat}</Text>
             </View>
 
-            <Text style={styles.label}>Kata Sandi :</Text>
-            <View style={styles.inputBox}>
-              <Text style={styles.inputText}>{user.password}</Text>
-            </View>
 
-            <TouchableOpacity style={styles.buttonEdit}>
+
+            <TouchableOpacity onPress={() => navigation.navigate('AccountEdit', user)} style={styles.buttonEdit}>
               <Text style={styles.buttonEditText}>Edit Profil</Text>
             </TouchableOpacity>
 
@@ -122,9 +114,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   avatar: {
+    marginTop: 10,
     width: 100,
     height: 100,
-    borderRadius: 100,
+    borderRadius: 10,
     marginBottom: 4,
   },
   kode: {

@@ -11,7 +11,7 @@ export default function MyInput({
   height = 45,
   rows,
   borderColor = colors.primary,
-  backgroundColor = colors.white,
+  backgroundColor = colors.tertiary,
   editable,
   icon = true,
   maxLength,

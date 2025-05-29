@@ -41,14 +41,9 @@ export default function Splash({ navigation }) {
       getData('user').then(res => {
 
         if (!res) {
-          navigation.replace('Home')
+          navigation.replace('Login')
         } else {
-
-          if (res.level !== 'Marketplace') {
-            navigation.replace('HomeAdmin')
-          } else {
-            navigation.replace('Home')
-          }
+          navigation.replace('Home')
 
           // navigation.replace('Home')
         }
@@ -65,8 +60,8 @@ export default function Splash({ navigation }) {
       backgroundColor: colors.primary
     }}>
       <Image source={require('../../assets/logosplash.png')} style={{
-        width: windowWidth / 3,
-        height: windowWidth / 3,
+        width: windowWidth / 2,
+        height: windowWidth / 2,
         resizeMode: 'contain'
       }} />
     </View>

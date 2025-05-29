@@ -11,7 +11,7 @@ import {
     ScrollView,
 } from 'react-native';
 import { windowWidth, fonts } from '../../utils/fonts';
-import { apiURL, getData, MYAPP, storeData, urlAPI, urlApp, urlAvatar } from '../../utils/localStorage';
+import { apiURL, getData, MYAPP, storeData, urlAPI, urlApp, urlAvatar, webURL } from '../../utils/localStorage';
 import { colors } from '../../utils/colors';
 import { MyButton, MyGap, MyInput, MyPicker } from '../../components';
 import { Icon } from 'react-native-elements';
@@ -26,22 +26,18 @@ export default function AccountEdit({ navigation, route }) {
     const [kirim, setKirim] = useState(route.params);
     const [loading, setLoading] = useState(false);
     const sendServer = () => {
-        setLoading(true);
+        // setLoading(true);
         console.log(kirim);
         axios.post(apiURL + 'update_profile', kirim).then(res => {
             console.log(res.data)
 
             // setLoading(false);
-
             if (res.data.status == 200) {
                 Alert.alert(MYAPP, res.data.message);
                 console.log(res.data.data);
                 storeData('user', res.data.data);
-                if (kirim.level != 'Marketplace') {
-                    navigation.replace('HomeAdmin');
-                } else {
-                    navigation.replace('Home');
-                }
+
+                navigation.replace('Home');
             }
         })
     }
@@ -49,19 +45,50 @@ export default function AccountEdit({ navigation, route }) {
     useEffect(() => {
         setKirim({
             ...kirim,
-            newfoto_user: null
+            newfoto_pengguna: null
         })
     }, [])
+
+    const pilihFoto = () => {
+        launchImageLibrary({ mediaType: 'photo', quality: 0.5, includeBase64: true }, res => {
+
+            if (!res.didCancel) {
+                console.log(res)
+                setKirim({
+                    ...kirim,
+                    newfoto_pengguna: `data:${res.type};base64,${res.base64}`
+                });
+            }
+        });
+    };
 
     return (
         <SafeAreaView style={{
             flex: 1,
             backgroundColor: colors.white,
-            padding: 10,
+            padding: 20,
         }}>
             <ScrollView showsVerticalScrollIndicator={false}>
 
+                <TouchableOpacity onPress={pilihFoto} style={{
+                    backgroundColor: colors.border,
+                    width: 100,
+                    height: 100,
+                    borderRadius: 10,
+                    borderWidth: 1,
+                    borderColor: colors.secondary,
+                    overflow: 'hidden',
+                    alignSelf: 'center',
+                }}>
+                    <Image source={{ uri: kirim.newfoto_pengguna !== null ? kirim.newfoto_pengguna : webURL + kirim.foto_pengguna }} style={{
+                        width: 100,
+                        height: 100,
+                        borderRadius: 10,
+                    }} />
+                </TouchableOpacity>
 
+                <MyInput label="Username" iconname="at" value={kirim.username} onChangeText={x => setKirim({ ...kirim, username: x })} />
+                <MyGap jarak={10} />
 
                 <MyInput label="Nama Lengkap" iconname="person" value={kirim.nama_lengkap} onChangeText={x => setKirim({ ...kirim, nama_lengkap: x })} />
                 <MyGap jarak={10} />
@@ -75,11 +102,11 @@ export default function AccountEdit({ navigation, route }) {
 
                 <MyGap jarak={10} />
 
-                <MyInput label="PIN" maxLength={6} iconname="key" secureTextEntry={true} onChangeText={x => setKirim({ ...kirim, newpassword: x })} placeholder="Kosongkan jika tidak diubah" />
+                <MyInput label="Password" iconname="key" secureTextEntry={true} onChangeText={x => setKirim({ ...kirim, newpassword: x })} placeholder="Kosongkan jika tidak diubah" />
                 <MyGap jarak={20} />
                 {loading && <ActivityIndicator color={colors.primary} size="large" />}
 
-                {!loading && <MyButton warna={colors.foourty} onPress={sendServer} title="Simpan Perubahan" Icons="download-outline" />}
+                {!loading && <MyButton warna={colors.secondary} onPress={sendServer} title="Simpan Perubahan" Icons="download-outline" />}
             </ScrollView>
         </SafeAreaView >
     )

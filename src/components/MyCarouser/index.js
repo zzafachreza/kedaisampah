@@ -15,7 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import { fonts } from '../../utils/fonts';
 import { Icon } from 'react-native-elements';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import { urlAPI } from '../../utils/localStorage';
+import { apiURL, urlAPI, webURL } from '../../utils/localStorage';
 
 export default function MyCarouser() {
   const [activeSlide, setActiveSlide] = useState(0);
@@ -24,30 +24,20 @@ export default function MyCarouser() {
   const navigation = useNavigation();
 
   useEffect(() => {
-    // axios.get(urlAPI + '/slider.php').then(res => {
-    //   console.log('slider', res.data);
-    //   setData(res.data);
-    // });
+    axios.get(apiURL + 'slider').then(res => {
+      console.log('slider', res.data);
+      setData(res.data);
+    });
   }, []);
 
-  const [data, setData] = useState([
-    {
-      image: 'https://superonlline.com/wp-content/uploads/2022/12/Contoh-Banner-Bahasa-Inggris-Tentang-Lingkungan.jpg',
-    },
-    {
-      image: 'https://d1csarkz8obe9u.cloudfront.net/posterpreviews/world-environment-day-design-template-50ee42dd9b9cbe02e9f41406b3f416d2_screen.jpg?ts=1622634725',
-    },
-    {
-      image: 'https://lindungihutan.com/public/img/bannercollaboratree13-min.png'
-    }
-  ]);
+  const [data, setData] = useState([]);
 
   const renderCarouselItem = ({ item }) => (
     <Image
-      source={{ uri: item.image }}
+      source={{ uri: webURL + item.foto_slider }}
       style={{
         resizeMode: 'cover',
-        height: 150,
+        height: 200,
         width: 300,
         borderRadius: 10,
       }}
@@ -55,7 +45,9 @@ export default function MyCarouser() {
   );
 
   return (
-    <View>
+    <View style={{
+      marginTop: 10,
+    }}>
       <Carousel
         loop={true}
         // layout="stack"

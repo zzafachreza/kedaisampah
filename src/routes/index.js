@@ -80,7 +80,7 @@ const Stack = createStackNavigator();
 
 export default function Router() {
   return (
-    <Stack.Navigator initialRouteName='Account'>
+    <Stack.Navigator initialRouteName='Splash'>
       <Stack.Screen
         name="Splash"
         component={Splash}
@@ -106,7 +106,7 @@ export default function Router() {
         component={JumlahSampah}
         options={{
           headerShown: false,
-       
+
         }}
       />
 
@@ -116,7 +116,7 @@ export default function Router() {
         component={Penukaran}
         options={{
           headerShown: false,
-       
+
         }}
       />
 
@@ -126,7 +126,7 @@ export default function Router() {
         component={PemesananSampah}
         options={{
           headerShown: false,
-       
+
         }}
       />
 
@@ -735,7 +735,7 @@ export default function Router() {
         name="Register"
         component={Register}
         options={{
-         headerShown: false,
+          headerShown: false,
         }}
       />
 

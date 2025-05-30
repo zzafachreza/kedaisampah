@@ -221,7 +221,7 @@ export default function PemesananSampah({ navigation }) {
                 <Text style={styles.hargaInfo}>{formatRupiah(item.harga * parseFloat(item.berat))}</Text>
               </View>
             ))}
-            <Text style={styles.totalBiaya}>Total Biaya : Rp{formatRupiah(totalHarga)}</Text>
+            <Text style={styles.totalBiaya}>Total Biaya : {formatRupiah(totalHarga)}</Text>
 
             <TouchableOpacity style={styles.checkoutButton} onPress={handleCheckout}>
               <Text style={styles.checkoutText}>Checkout</Text>

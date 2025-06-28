@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -8,34 +8,33 @@ import {
   ScrollView,
   Dimensions,
   Linking,
-  Alert
+  Alert,
 } from 'react-native';
-import { MyHeader } from '../../components';
-import { colors, fonts } from '../../utils';
+import {MyHeader} from '../../components';
+import {colors, fonts} from '../../utils';
 import axios from 'axios';
-import { apiURL } from '../../utils/localStorage';
-import { showMessage } from 'react-native-flash-message';
+import {apiURL} from '../../utils/localStorage';
+import {showMessage} from 'react-native-flash-message';
 
-const { width } = Dimensions.get('window');
+const {width} = Dimensions.get('window');
 
-export default function Penukaran({ navigation, route }) {
+export default function Penukaran({navigation, route}) {
   const user = route.params.user;
   const saya = route.params.saya;
 
   const [tukar, setTukar] = useState(0);
   // Fungsi ubah ke format "Rp10.000"
 
-
   const [comp, setComp] = useState({});
   const __getCompany = () => {
     axios.post(apiURL + 'company').then(res => {
-      console.log(res.data)
+      console.log(res.data);
       setComp(res.data[0]);
-    })
-  }
+    });
+  };
 
   // Fungsi ambil angka mentah dari input
-  const getCleanNumber = (formatted) => {
+  const getCleanNumber = formatted => {
     return formatted.replace(/[^\d]/g, '');
   };
 
@@ -48,9 +47,11 @@ export default function Penukaran({ navigation, route }) {
   }
 
   const handleSimpan = () => {
-
     if (parseInt(tukar) > parseInt(saya.saldo)) {
       Alert.alert('Gagal', 'Saldo yang ditukar melebihi saldo tersedia.');
+      return;
+    } else if (parseInt(tukar) < 10000) {
+      Alert.alert('Gagal', 'Saldo yang ditukar minimal Rp10.000');
       return;
     }
 
@@ -61,28 +62,30 @@ export default function Penukaran({ navigation, route }) {
 
     const url = `https://wa.me/${comp.tlp}?text=${encodeURIComponent(pesan)}`;
 
-    axios.post(apiURL + 'insert_tukar', {
-      fid_pengguna: user.id_pengguna,
-      saldo: saya.saldo,
-      tukar: tukar
-    }).then(res => {
-      console.log(res.data)
-      if (res.data.status == 200) {
-        showMessage({
-          type: 'success',
-          message: res.data.message
-        });
-        navigation.goBack();
-        Linking.openURL(url).catch(() =>
-          Alert.alert('Error', 'Tidak dapat membuka WhatsApp')
-        );
-      }
-    })
+    axios
+      .post(apiURL + 'insert_tukar', {
+        fid_pengguna: user.id_pengguna,
+        saldo: saya.saldo,
+        tukar: tukar,
+      })
+      .then(res => {
+        console.log(res.data);
+        if (res.data.status == 200) {
+          showMessage({
+            type: 'success',
+            message: res.data.message,
+          });
+          navigation.goBack();
+          Linking.openURL(url).catch(() =>
+            Alert.alert('Error', 'Tidak dapat membuka WhatsApp'),
+          );
+        }
+      });
   };
 
   useEffect(() => {
     __getCompany();
-  }, [])
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -98,14 +101,11 @@ export default function Penukaran({ navigation, route }) {
             editable={false}
           />
 
-
-
           {/* Jumlah Saldo */}
           <Text style={styles.label}>Jumlah Saldo :</Text>
           <TextInput
             style={styles.input}
             value={new Intl.NumberFormat().format(saya.saldo)}
-
             editable={false}
           />
 
@@ -117,7 +117,7 @@ export default function Penukaran({ navigation, route }) {
             style={styles.input}
             keyboardType="numeric"
             value={tukar}
-            onChangeText={(value) => {
+            onChangeText={value => {
               // const clean = value.replace(/[^\d]/g, '');
               // const formatted = formatRupiah(clean);
               setTukar(value);
@@ -133,7 +133,6 @@ export default function Penukaran({ navigation, route }) {
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {
@@ -163,7 +162,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.primary[400],
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#dededede'
+    borderColor: '#dededede',
   },
   button: {
     backgroundColor: colors.secondary,

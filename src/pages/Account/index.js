@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   StyleSheet,
   Text,
@@ -9,22 +9,20 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { MyHeader } from '../../components';
-import { windowWidth, fonts } from '../../utils/fonts';
-import { colors } from '../../utils/colors';
-import { Alert } from 'react-native';
-import { MYAPP, storeData, webURL } from '../../utils/localStorage';
+import {MyHeader} from '../../components';
+import {windowWidth, fonts} from '../../utils/fonts';
+import {colors} from '../../utils/colors';
+import {Alert} from 'react-native';
+import {MYAPP, storeData, webURL} from '../../utils/localStorage';
 // import { getData, storeData, MYAPP } from '../../utils/localStorage'; // ← backend utils
-import { getData } from '../../utils/localStorage';
-import { useIsFocused } from '@react-navigation/native';
+import {getData} from '../../utils/localStorage';
+import {useIsFocused} from '@react-navigation/native';
 
-
-export default function Profile({ navigation }) {
+export default function Profile({navigation}) {
   // Data dummy sementara
 
-
   const [user, setUser] = useState({
-    foto_pengguna: ''
+    foto_pengguna: '',
   });
   const isFocus = useIsFocused();
 
@@ -32,13 +30,13 @@ export default function Profile({ navigation }) {
     if (isFocus) {
       getData('user').then(res => {
         setUser(res);
-      })
+      });
     }
-  }, [isFocus])
+  }, [isFocus]);
 
   const handleLogout = () => {
     Alert.alert(MYAPP, 'Yakin ingin keluar?', [
-      { text: 'Batal', style: 'cancel' },
+      {text: 'Batal', style: 'cancel'},
       {
         text: 'Keluar',
         onPress: () => {
@@ -49,20 +47,28 @@ export default function Profile({ navigation }) {
     ]);
   };
 
-
-
   return (
     <SafeAreaView style={styles.container}>
       <MyHeader title="Profil" />
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
+      <ScrollView contentContainerStyle={{paddingBottom: 30}}>
         <View style={styles.content}>
-          <Image source={{
-            uri: user.foto_pengguna.length > 0 ? webURL + user.foto_pengguna : 'https://zavalabs.com/noimage.png'
-          }} style={styles.avatar} />
+          <Image
+            source={{
+              uri:
+                user.foto_pengguna.length > 0
+                  ? webURL + user.foto_pengguna
+                  : 'https://zavalabs.com/noimage.png',
+            }}
+            style={styles.avatar}
+          />
           <Text style={styles.kode}>{user.kode}</Text>
 
           <View style={styles.box}>
+            <Text style={styles.label}>kode Unik :</Text>
+            <View style={styles.inputBox}>
+              <Text style={styles.inputText}>KS{user.id_pengguna}</Text>
+            </View>
             <Text style={styles.label}>Nama Lengkap :</Text>
             <View style={styles.inputBox}>
               <Text style={styles.inputText}>{user.nama_lengkap}</Text>
@@ -83,13 +89,15 @@ export default function Profile({ navigation }) {
               <Text style={styles.inputText}>{user.alamat}</Text>
             </View>
 
-
-
-            <TouchableOpacity onPress={() => navigation.navigate('AccountEdit', user)} style={styles.buttonEdit}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('AccountEdit', user)}
+              style={styles.buttonEdit}>
               <Text style={styles.buttonEditText}>Edit Profil</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.buttonLogout} onPress={handleLogout}>
+            <TouchableOpacity
+              style={styles.buttonLogout}
+              onPress={handleLogout}>
               <Text style={styles.buttonLogoutText}>Keluar</Text>
             </TouchableOpacity>
           </View>
@@ -143,7 +151,7 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     shadowColor: '#000',
     shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowRadius: 5,
   },
   inputText: {

@@ -1,16 +1,27 @@
-import { View, Text, ScrollView, StyleSheet, Image, TouchableOpacity, TextInput, Linking, Alert } from 'react-native';
-import React, { useEffect, useState } from 'react';
-import { colors, fonts } from '../../utils';
-import { MyHeader } from '../../components';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  TextInput,
+  Linking,
+  Alert,
+} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {colors, fonts} from '../../utils';
+import {MyHeader, MyPicker} from '../../components';
 import axios from 'axios';
-import { apiURL, getData, webURL } from '../../utils/localStorage';
-import { showMessage } from 'react-native-flash-message';
+import {apiURL, getData, webURL} from '../../utils/localStorage';
+import {showMessage} from 'react-native-flash-message';
 
 const dataSampahAwal = [
   {
     id: 1,
     nama: 'Botol Plastik',
-    deskripsi: 'Botol Le Mineral, Botol Aqua, Botol Club, Botol Pulpy dan sejenisnya.',
+    deskripsi:
+      'Botol Le Mineral, Botol Aqua, Botol Club, Botol Pulpy dan sejenisnya.',
     hargaPerKg: 5000,
     image: require('../../assets/botol_plastik.png'),
   },
@@ -37,24 +48,32 @@ const dataSampahAwal = [
   },
 ];
 
-export default function PemesananSampah({ navigation }) {
+export default function PemesananSampah({navigation}) {
   const [dataSampah, setDataSampah] = useState([]);
 
-  const [user, setUser] = useState({})
+  const [user, setUser] = useState({});
   const [comp, setComp] = useState({});
+  const [pengguna, setPengguna] = useState([]);
   const __getCompany = () => {
     axios.post(apiURL + 'company').then(res => {
-      console.log(res.data)
+      console.log(res.data);
       setComp(res.data[0]);
-    })
-  }
+    });
+  };
+
+  const __getPengguna = () => {
+    axios.post(apiURL + 'pengguna').then(res => {
+      console.log(res.data);
+      setPengguna(res.data);
+    });
+  };
 
   const _getSampah = () => {
     axios.post(apiURL + 'sampah').then(res => {
-      console.log(res.data)
+      console.log(res.data);
       setDataSampah(res.data);
-    })
-  }
+    });
+  };
 
   const handleInput = (id, value) => {
     setDataSampah(prev =>
@@ -66,11 +85,11 @@ export default function PemesananSampah({ navigation }) {
           };
         }
         return item;
-      })
+      }),
     );
   };
 
-  const handleInputBlur = (id) => {
+  const handleInputBlur = id => {
     setDataSampah(prev =>
       prev.map(item => {
         if (item.id_barang === id) {
@@ -84,15 +103,14 @@ export default function PemesananSampah({ navigation }) {
           }
         }
         return item;
-      })
+      }),
     );
   };
 
-
-  const toggleInput = (id) => {
+  const toggleInput = id => {
     const updated = dataSampah.map(item => {
       if (item.id_barang === id) {
-        return { ...item, showInput: true };
+        return {...item, showInput: true};
       }
       return item;
     });
@@ -100,18 +118,24 @@ export default function PemesananSampah({ navigation }) {
   };
 
   const getSummary = () => {
-    const filtered = dataSampah.filter(i => i.berat !== '' && parseFloat(i.berat) > 0);
+    const filtered = dataSampah.filter(
+      i => i.berat !== '' && parseFloat(i.berat) > 0,
+    );
     const totalJenis = filtered.length;
     const totalKg = filtered.reduce((sum, i) => sum + parseFloat(i.berat), 0);
-    const totalHarga = filtered.reduce((sum, i) => sum + parseFloat(i.berat) * i.harga, 0);
-    return { filtered, totalJenis, totalKg, totalHarga };
+    const totalHarga = filtered.reduce(
+      (sum, i) => sum + parseFloat(i.berat) * i.harga,
+      0,
+    );
+    return {filtered, totalJenis, totalKg, totalHarga};
   };
 
-  const { filtered, totalJenis, totalKg, totalHarga } = getSummary();
-
+  const {filtered, totalJenis, totalKg, totalHarga} = getSummary();
 
   const handleCheckout = () => {
-    const listSampah = dataSampah.filter(item => item.berat && parseFloat(item.berat) > 0);
+    const listSampah = dataSampah.filter(
+      item => item.berat && parseFloat(item.berat) > 0,
+    );
 
     if (listSampah.length === 0) {
       Alert.alert('Oops', 'Silakan isi minimal satu jenis sampah');
@@ -122,42 +146,47 @@ export default function PemesananSampah({ navigation }) {
     let header = `Nomor Telepon : *${user.telepon}*\n`;
     header += `Nama Pengguna : *${user.nama_lengkap}*\n\nList Sampah :\n`;
     const isi = listSampah
-      .map((item, index) => `${index + 1}. *${item.nama}* *${item.berat} kg* = *${formatRupiah(parseFloat(item.berat) * parseFloat(item.harga))}*`)
+      .map(
+        (item, index) =>
+          `${index + 1}. *${item.nama}* *${item.berat} kg* = *${formatRupiah(
+            parseFloat(item.berat) * parseFloat(item.harga),
+          )}*`,
+      )
       .join('\n');
 
     const message = header + isi;
     const url = `https://wa.me/${nomor}?text=${encodeURIComponent(message)}`;
 
     console.log(listSampah);
-    axios.post(apiURL + 'insert_setor', {
-      user: user,
-      sampah: listSampah
-    }).then(res => {
-      console.log(res.data);
-      navigation.goBack();
-      if (res.data.status == 200) {
-        showMessage({
-          type: 'success',
-          message: res.data.message
-        })
-        Linking.openURL(url).catch(() =>
-          Alert.alert('Error', 'Tidak dapat membuka WhatsApp')
-        );
-      }
-
-    })
-
+    axios
+      .post(apiURL + 'insert_setor', {
+        user: user,
+        sampah: listSampah,
+      })
+      .then(res => {
+        console.log(res.data);
+        navigation.goBack();
+        if (res.data.status == 200) {
+          showMessage({
+            type: 'success',
+            message: res.data.message,
+          });
+          Linking.openURL(url).catch(() =>
+            Alert.alert('Error', 'Tidak dapat membuka WhatsApp'),
+          );
+        }
+      });
   };
-
-
 
   useEffect(() => {
     getData('user').then(res => {
-      setUser(res)
-    })
+      setUser(res);
+    });
+
+    __getPengguna();
     __getCompany();
     _getSampah();
-  }, [])
+  }, []);
 
   function formatRupiah(value, pakai = true) {
     const formatted = new Intl.NumberFormat('id-ID', {
@@ -167,23 +196,57 @@ export default function PemesananSampah({ navigation }) {
     return pakai ? `Rp${formatted}` : formatted;
   }
 
-
   return (
     <View style={styles.container}>
       <MyHeader title="Pemesanan Sampah" />
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
+      {user.level == 'Admin' && (
+        <View
+          style={{
+            paddingTop: 10,
+            paddingHorizontal: 20,
+            paddingBottom: 10,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.secondary,
+            backgroundColor: colors.secondary,
+          }}>
+          <MyPicker
+            iconColor={colors.white}
+            iconname="person"
+            label="Pilih Pengguna"
+            data={pengguna}
+            onValueChange={x =>
+              setUser({
+                ...user,
+                id_pengguna: x,
+              })
+            }
+            value={user.id_pengguna}
+          />
+        </View>
+      )}
+      <ScrollView contentContainerStyle={{paddingBottom: 120}}>
         {dataSampah.map((item, index) => (
-          <View key={item.id} style={[styles.card, index !== 0 && styles.cardBorder]}>
+          <View
+            key={item.id}
+            style={[styles.card, index !== 0 && styles.cardBorder]}>
             <View style={styles.row}>
-              <Image source={{
-                uri: webURL + item.foto_barang
-              }} style={styles.image} />
+              <Image
+                source={{
+                  uri: webURL + item.foto_barang,
+                }}
+                style={styles.image}
+              />
               <View style={styles.textContainer}>
                 <Text style={styles.nama}>{item.nama}</Text>
                 <Text style={styles.deskripsi}>{item.keterangan}</Text>
                 <View style={styles.hargaRow}>
-                  <Image source={require('../../assets/coin.png')} style={styles.coin} />
-                  <Text style={styles.harga}>{formatRupiah(item.harga)}/kg</Text>
+                  <Image
+                    source={require('../../assets/coin.png')}
+                    style={styles.coin}
+                  />
+                  <Text style={styles.harga}>
+                    {formatRupiah(item.harga)}/kg
+                  </Text>
                 </View>
               </View>
               {item.showInput ? (
@@ -200,7 +263,9 @@ export default function PemesananSampah({ navigation }) {
                   <Text style={styles.kg}>kg</Text>
                 </View>
               ) : (
-                <TouchableOpacity style={styles.tombol} onPress={() => toggleInput(item.id_barang)}>
+                <TouchableOpacity
+                  style={styles.tombol}
+                  onPress={() => toggleInput(item.id_barang)}>
                   <Text style={styles.tombolText}>+</Text>
                 </TouchableOpacity>
               )}
@@ -211,22 +276,27 @@ export default function PemesananSampah({ navigation }) {
         {filtered.length > 0 && (
           <View style={styles.summaryContainer}>
             <Text style={styles.summaryTitle}>
-              {totalJenis} Jenis   |   {totalKg} Kg
+              {totalJenis} Jenis | {totalKg} Kg
             </Text>
             {filtered.map((item, index) => (
               <View key={index} style={styles.summaryItem}>
                 <Text style={styles.bullet}>•</Text>
                 <Text style={styles.nama}>{item.nama}</Text>
                 <Text style={styles.kgInfo}>{item.berat} Kg</Text>
-                <Text style={styles.hargaInfo}>{formatRupiah(item.harga * parseFloat(item.berat))}</Text>
+                <Text style={styles.hargaInfo}>
+                  {formatRupiah(item.harga * parseFloat(item.berat))}
+                </Text>
               </View>
             ))}
-            <Text style={styles.totalBiaya}>Total Biaya : {formatRupiah(totalHarga)}</Text>
+            <Text style={styles.totalBiaya}>
+              Total Biaya : {formatRupiah(totalHarga)}
+            </Text>
 
-            <TouchableOpacity style={styles.checkoutButton} onPress={handleCheckout}>
+            <TouchableOpacity
+              style={styles.checkoutButton}
+              onPress={handleCheckout}>
               <Text style={styles.checkoutText}>Checkout</Text>
             </TouchableOpacity>
-
           </View>
         )}
       </ScrollView>

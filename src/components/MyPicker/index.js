@@ -1,12 +1,13 @@
 import React from 'react';
-import { StyleSheet, Text, View, Picker } from 'react-native';
-import { Icon, ListItem, Button } from 'react-native-elements';
-import { colors } from '../../utils/colors';
-import { fonts } from '../../utils/fonts';
+import {StyleSheet, Text, View, Picker} from 'react-native';
+import {Icon, ListItem, Button} from 'react-native-elements';
+import {colors} from '../../utils/colors';
+import {fonts} from '../../utils/fonts';
 
 export default function MyPicker({
   label,
   iconname,
+  iconColor = colors.black,
   onValueChange,
   onChangeText,
   value,
@@ -27,11 +28,11 @@ export default function MyPicker({
           alignItems: 'center',
           paddingVertical: 0,
         }}>
-        <Icon type="ionicon" name={iconname} color={colors.black} size={16} />
+        <Icon type="ionicon" name={iconname} color={iconColor} size={16} />
         <Text
           style={{
             fontFamily: fonts.secondary[600],
-            color: colors.black,
+            color: iconColor,
             fontSize: 14,
             ...styleLabel,
           }}>
@@ -39,18 +40,27 @@ export default function MyPicker({
         </Text>
       </View>
 
-      <View style={{
-        backgroundColor: colors.white,
-        borderRadius: 5,
-        marginTop: 5,
-        borderWidth: 1,
-        fontFamily: fonts.secondary[600],
-        borderColor: colors.primary,
-      }}>
-        <Picker style={{ height: 48, transform: [{ scale: 0.9 }] }}
-          selectedValue={value} onValueChange={onValueChange}>
+      <View
+        style={{
+          backgroundColor: colors.white,
+          borderRadius: 5,
+          marginTop: 5,
+          borderWidth: 1,
+          fontFamily: fonts.secondary[600],
+          borderColor: colors.primary,
+        }}>
+        <Picker
+          style={{height: 48, transform: [{scale: 0.9}]}}
+          selectedValue={value}
+          onValueChange={onValueChange}>
           {data.map(item => {
-            return <Picker.Item textStyle={{ fontSize: 12 }} value={item.value} label={item.label} />;
+            return (
+              <Picker.Item
+                textStyle={{fontSize: 12}}
+                value={item.value}
+                label={item.label}
+              />
+            );
           })}
         </Picker>
       </View>

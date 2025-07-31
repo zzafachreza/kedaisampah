@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -11,97 +11,110 @@ import {
   StatusBar,
   Linking,
 } from 'react-native';
-import { colors, fonts } from '../../utils';
+import {colors, fonts, windowWidth} from '../../utils';
 import axios from 'axios';
-import { FloatingAction } from "react-native-floating-action";
+import {FloatingAction} from 'react-native-floating-action';
 import 'intl';
 import 'intl/locale-data/jsonp/en';
-import { apiURL, storeData } from '../../utils/localStorage';
-import { showMessage } from 'react-native-flash-message';
-import { Icon } from 'react-native-elements';
-const { width } = Dimensions.get('window');
+import {apiURL, storeData} from '../../utils/localStorage';
+import {showMessage} from 'react-native-flash-message';
+import {Icon} from 'react-native-elements';
+const {width} = Dimensions.get('window');
 
-export default function Login({ navigation }) {
+export default function Login({navigation}) {
   const [comp, setComp] = useState({});
   const [kirim, setKirim] = useState({
     username: '',
-    password: ''
+    password: '',
   });
 
   const loginMasuk = () => {
     if (kirim.username.length == 0 || kirim.password.length == 0) {
-      showMessage({ message: 'Username dan password wajib diisi !' })
+      showMessage({message: 'Username dan password wajib diisi !'});
     } else {
       axios.post(apiURL + 'login', kirim).then(res => {
         if (res.data.status == 200) {
           storeData('user', res.data.data);
-          navigation.replace('Home')
+          navigation.replace('Home');
         } else {
           showMessage({
             type: 'danger',
-            message: res.data.message
-          })
+            message: res.data.message,
+          });
         }
       });
     }
-  }
+  };
 
   useEffect(() => {
     axios.post(apiURL + 'company').then(res => {
       console.log(res.data);
       setComp(res.data[0]);
-    })
+    });
   }, []);
 
   const [buka, setBuka] = useState(false);
 
   return (
-    <ScrollView style={{ backgroundColor: 'white' }}>
+    <ScrollView style={{backgroundColor: 'white'}}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <View style={styles.container}>
         <Image
-          source={require('../../assets/logologin.png')} // pastikan file ini ada
-          style={styles.logo}
-          resizeMode="contain"
+          source={require('../../assets/logo.png')} // pastikan file ini ada
+          style={{
+            height: 300,
+            width: 300,
+          }}
         />
-
-
 
         <TextInput
           placeholder="Username"
           placeholderTextColor="#bbb"
           value={kirim.username}
-          onChangeText={x => setKirim({
-            ...kirim,
-            username: x
-          })}
+          onChangeText={x =>
+            setKirim({
+              ...kirim,
+              username: x,
+            })
+          }
           style={styles.input}
         />
 
-        <View style={{
-          position: 'relative'
-        }}>
+        <View
+          style={{
+            position: 'relative',
+          }}>
           <TextInput
             placeholder="Kata Sandi"
             placeholderTextColor="#bbb"
             secureTextEntry={!buka ? true : false}
             value={kirim.password}
-            onChangeText={x => setKirim({
-              ...kirim,
-              password: x
-            })}
+            onChangeText={x =>
+              setKirim({
+                ...kirim,
+                password: x,
+              })
+            }
             style={styles.input}
           />
-          <TouchableOpacity onPress={() => setBuka(!buka)} style={{
-            position: 'absolute',
-            right: 10,
-            top: 12,
-          }}>
-            <Icon type='ionicon' name={buka ? 'eye' : 'eye-off'} />
+          <TouchableOpacity
+            onPress={() => setBuka(!buka)}
+            style={{
+              position: 'absolute',
+              right: 10,
+              top: 12,
+            }}>
+            <Icon type="ionicon" name={buka ? 'eye' : 'eye-off'} />
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity onPress={() => Linking.openURL(`https://wa.me/${comp.tlp}?text=Halo Admin, saya lupa password . . .`)} style={{ alignSelf: 'flex-end', marginRight: 20 }}>
+        <TouchableOpacity
+          onPress={() =>
+            Linking.openURL(
+              `https://wa.me/${comp.tlp}?text=Halo Admin, saya lupa password . . .`,
+            )
+          }
+          style={{alignSelf: 'flex-end', marginRight: 20}}>
           <Text style={styles.forgot}>Lupa password?</Text>
         </TouchableOpacity>
 
@@ -110,10 +123,10 @@ export default function Login({ navigation }) {
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Register')}>
           <View style={styles.registerContainer}>
-            <Text style={styles.registerText}>Belum memiliki akun? Silakan </Text>
-
+            <Text style={styles.registerText}>
+              Belum memiliki akun? Silakan{' '}
+            </Text>
             <Text style={styles.registerLink}>Daftar</Text>
-
           </View>
         </TouchableOpacity>
       </View>
@@ -125,16 +138,16 @@ const styles = StyleSheet.create({
   container: {
     height: '100%',
     alignItems: 'center',
-    paddingTop: 70,
+
     paddingBottom: 0,
     backgroundColor: '#fff',
   },
   logo: {
-    width: 283,
-    height: 163,
-    marginBottom: 133,
-    alignItems: "center",
-    alignSelf: "center"
+    width: windowWidth,
+    height: windowWidth,
+
+    alignItems: 'center',
+    alignSelf: 'center',
   },
   title: {
     fontSize: 24,

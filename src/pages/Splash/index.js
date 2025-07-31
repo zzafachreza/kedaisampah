@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, {useEffect} from 'react';
 import {
   StyleSheet,
   Text,
@@ -8,12 +8,12 @@ import {
   Animated,
   ImageBackground,
 } from 'react-native';
-import { MyButton } from '../../components';
-import { colors, fonts, windowHeight, windowWidth } from '../../utils';
-import { getData } from '../../utils/localStorage';
+import {MyButton} from '../../components';
+import {colors, fonts, windowHeight, windowWidth} from '../../utils';
+import {getData} from '../../utils/localStorage';
 import LinearGradient from 'react-native-linear-gradient';
 
-export default function Splash({ navigation }) {
+export default function Splash({navigation}) {
   const top = new Animated.Value(0.3);
 
   const animasi = () => {
@@ -34,36 +34,36 @@ export default function Splash({ navigation }) {
     ).start();
   };
 
-
-
   useEffect(() => {
     setTimeout(() => {
       getData('user').then(res => {
-
         if (!res) {
-          navigation.replace('Login')
+          navigation.replace('Login');
         } else {
-          navigation.replace('Home')
+          navigation.replace('Home');
 
           // navigation.replace('Home')
         }
-      })
-    }, 1500)
+      });
+    }, 1500);
   }, []);
 
-
   return (
-    <View style={{
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: colors.primary
-    }}>
-      <Image source={require('../../assets/logosplash.png')} style={{
-        width: windowWidth / 2,
-        height: windowWidth / 2,
-        resizeMode: 'contain'
-      }} />
+    <View
+      style={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: colors.primary,
+      }}>
+      <Image
+        source={require('../../assets/logo.png')}
+        style={{
+          width: windowWidth,
+          height: windowWidth,
+          resizeMode: 'contain',
+        }}
+      />
     </View>
   );
 }
